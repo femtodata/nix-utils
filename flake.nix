@@ -8,9 +8,9 @@
     self,
     nixpkgs,
     ...
-  }@inputs: 
-  {
+  }@inputs: {
     nixosModules = {
+      docker-compose = import ./modules/docker-compose.nix;
       switch-fix = import ./modules/switch-fix.nix;
     };
   };
