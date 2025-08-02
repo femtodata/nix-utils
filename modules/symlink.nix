@@ -70,6 +70,7 @@ in {
         RemainAfterExit = "no";
         ExecStart = pkgs.writeShellScript "generate-symlinks" ''
           set -x
+          # I got this from https://jade.fyi/blog/use-nix-less/
           function symlink() {
             if [[ -e "$2" && ! -L "$2" ]] ; then 
                 echo "$2 exists and is not a symlink. Ignoring it." >&2
