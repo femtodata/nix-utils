@@ -74,6 +74,15 @@ in {
           dependencies for plugins from nixpkgs.vimPlugins.
         '';
       };
+
+      initLuaFile = mkOption {
+        type = types.nullOr types.path;
+        default = null;
+        example = ./init.lua;
+        description = mdDoc ''
+          Path to init.lua which will be copied to /nix/store; this will be added to the wrapper, and thus bypass ~/.config/nvim/init.lua file or symlink.
+        '';
+      };
     };
   };
 
