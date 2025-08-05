@@ -50,7 +50,9 @@ let
       # reads user's standard .config/nvim
       wrapProgram $out/bin/nvim \
         --add-flags '--cmd' \
-        --add-flags "'set packpath^=${packpath} | set runtimepath^=${packpath}'"
+        --add-flags "'set packpath^=${packpath} | set runtimepath^=${packpath}'" ${optionalString (cfg.initLuaFile != null) '' \
+        --add-flags '-u' \
+        --add-flags '${cfg.initLuaFile}' ''}
 
       makeWrapper ${python3Env.interpreter} $out/bin/nvim-python3 --unset PYTHONPATH --unset PYTHONSAFEPATH
     '';
