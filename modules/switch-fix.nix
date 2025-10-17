@@ -8,22 +8,47 @@ let
     sudo nix-env --profile /nix/var/nix/profiles/system --set $1
     sudo $1/bin/switch-to-configuration boot
   '';
-  rollback-profile-path = "/var/lib/nix-autorollback/profile";
-  rollback-delay = "90";
+  rollback-profile-base = "/var/lib/nix-autorollback";
+  rollback-profile-path = "${rollback-profile-base}/profile";
+  rollback-profile-switch-path = "${rollback-profile-base}/profile-switch";
+  rollback-delay = "30";
+
   set-rollback = pkgs.writeShellScriptBin "set-rollback" ''
-    sudo mkdir -p $(dirname ${rollback-profile-path})
-    sudo ln -sf $(readlink /run/current-system) ${rollback-profile-path}
+    if [ -d ${rollback-profile-switch-path} ]; then
+      echo "Error: rollback-profile-switch-path at ${rollback-profile-switch-path} exists"
+    else
+      sudo ln -sf $(readlink /run/current-system) ${rollback-profile-path}
+    fi
   '';
+
+  set-rollback-switch = pkgs.writeShellScriptBin "set-rollback-switch" ''
+    if [ -d ${rollback-profile-path} ]; then
+      echo "Error: rollback-profile-switch-path at ${rollback-profile-switch-path} exists"
+    else
+      sudo ln -sf $(readlink /run/current-system) ${rollback-profile-switch-path}
+    fi
+  '';
+
   cancel-rollback = pkgs.writeShellScriptBin "cancel-rollback" ''
     sudo systemctl stop nix-autorollback.service
-    sudo rm ${rollback-profile-path}
+    if [ -d ${rollback-profile-path} ]; then
+      sudo rm ${rollback-profile-path}
+    fi
+    if [ -d ${rollback-profile-switch-path} ]; then
+      sudo rm ${rollback-profile-switch-path}
+    fi
   '';
 in
 {
+  systemd.tmpfiles.rules = [ 
+    "d ${rollback-profile-base} 0755 root root - -" 
+  ];
+
   environment.systemPackages = [
     switch-fix
     boot-fix
     set-rollback
+    set-rollback-switch
     cancel-rollback
   ];
 
@@ -41,6 +66,15 @@ in
         $(readlink ${rollback-profile-path})/bin/switch-to-configuration boot
         rm ${rollback-profile-path}
         ${pkgs.systemd}/bin/shutdown -r now
+      elif [ -d ${rollback-profile-switch-path} ]; then
+        ${pkgs.util-linux}/bin/wall -t 5 "Autorollback (switch) in ${rollback-delay}"
+        echo "Autorollback in ${rollback-delay}"
+        ${pkgs.coreutils}/bin/sleep ${rollback-delay}
+        ${pkgs.util-linux}/bin/wall "Rolling back to $(readlink ${rollback-profile-switch-path})"
+        echo "Rolling back to $(readlink ${rollback-profile-switch-path})"
+        ${pkgs.nix}/bin/nix-env --profile /nix/var/nix/profiles/system --set $(readlink ${rollback-profile-switch-path})
+        $(readlink ${rollback-profile-switch-path})/bin/switch-to-configuration switch
+        rm ${rollback-profile-switch-path}
       fi
     '';
     serviceConfig = {
