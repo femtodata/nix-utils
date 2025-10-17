@@ -11,7 +11,7 @@ let
   rollback-profile-base = "/var/lib/nix-autorollback";
   rollback-profile-path = "${rollback-profile-base}/profile";
   rollback-profile-switch-path = "${rollback-profile-base}/profile-switch";
-  rollback-delay = "30";
+  rollback-delay = "90";
 
   set-rollback = pkgs.writeShellScriptBin "set-rollback" ''
     if [ -d ${rollback-profile-switch-path} ]; then
