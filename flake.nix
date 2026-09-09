@@ -15,6 +15,7 @@
         neovim-with-plugins = import ./modules/neovim-with-plugins.nix;
         switch-fix = import ./modules/switch-fix.nix;
         symlink = import ./modules/symlink.nix;
+        syncthing-config = import ./modules/syncthing-config.nix;
         tmux-enhanced = import ./modules/tmux-enhanced.nix;
       };
     };
