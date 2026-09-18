@@ -118,7 +118,7 @@ in
 
     services.syncthing =
       let
-        device = getAttr cfg.thisDevice cfg.devices;
+        device = if (cfg.thisDevice == null) then { } else getAttr cfg.thisDevice cfg.devices;
         devices = filterAttrs (n: v: n != cfg.thisDevice) cfg.devices;
         folders = filterAttrs (n: v: hasAttr cfg.thisDevice v) cfg.folders;
       in
