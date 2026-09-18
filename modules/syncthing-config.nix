@@ -90,16 +90,24 @@ in
         );
       };
       thisDevice = mkOption {
+        type = types.nullOr types.str;
+        default = null;
         description = mkDoc ''
           This device, which should be one that is defined in `devices`.
+          This option is required!
         '';
-        type = types.str;
       };
     };
   };
 
   config = mkIf cfg.enable {
     assertions = [
+      {
+        assertion = cfg.thisDevice != null;
+        message = ''
+          thisDevice must be defined.
+        '';
+      }
       {
         assertion = (hasAttr cfg.thisDevice cfg.devices);
         message = ''
